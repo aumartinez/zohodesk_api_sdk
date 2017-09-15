@@ -3,6 +3,7 @@
 <head>
 	<title>View All Tickets</title>
 	<script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+        <script type="text/javascript" src="js/zohodesk-sdk.js"></script>
 </head>
 <body>
 	<script type="text/javascript">
@@ -16,7 +17,7 @@
 		        $.ajax(
 		          {
 		          	method:"GET",
-		            url: "https://desk.zoho.com/supportapi/api/v1/tickets?include="+include_fields,
+		            url: "https://desk.zoho.com/api/v1/tickets?include="+include_fields,
 		            contentType: "application/json; charset=utf-8",
 		            dataType: "json",
 		            headers: {
@@ -24,8 +25,7 @@
 		              "orgId":org_id
 		            },
 		            data:{
-		            	include:include_fields,
-		            	limit:37
+		            	include:include_fields
 		            },
 		            success: function(data, textStatus, jqXHR) {
 		              console.log(data);
