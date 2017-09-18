@@ -1,54 +1,160 @@
 var zohodeskAPI_vars={
-    content_json:"application/json; charset=utf-8"
+    content_json:"application/json; charset=utf-8",
+    appBaseURL:"https://desk.zoho.com/api/v1/"
 };
+class zohodeskAPI_Object{
+    constructor(name) {
+        this.name = name;
+    }
+    create(data,obj){
+        var url=this.buildURL(this.getPrimaryURL());
+        return obj.httpPOST(url,data);
+    }
+    update(id,data,obj){
+        var url=this.buildURL(this.getPrimaryURL(id));
+        return obj.httpPATCH(url,data);
+    }
+    delete(id,obj){
+        var url=this.buildURL(this.getPrimaryURL(id));
+        return obj.httpDELETE(url);
+    }
+    info(id,obj){
+        var url=this.buildURL(this.getPrimaryURL(id));
+        return obj.httpGET(url);
+    }
+    all(obj){
+        var url=this.buildURL(this.getPrimaryURL());
+        return obj.httpGET(url);
+    }
+    buildURL(url,params=""){
+        return (params.length>0)?url+params:url;
+    }
+    getPrimaryURL(id=null){
+        var returnURL=zohodeskAPI_vars.appBaseURL;
+        if(id!==null){
+            returnURL+=this.name+"/"+id;
+        }else{
+            returnURL+=this.name;
+        }
+        return returnURL;
+    }
+};
+class zohodeskAPI_Secondary_Object{
+    constructor(name,parent) {
+        this.name = name;
+        this.parent_name=parent;
+    }
+    create(parent_id,data,obj){
+        var url=this.buildURL(this.getPrimaryURL(parent_id));
+        return obj.httpPOST(url,data);
+    }
+    update(parent_id,id,data,obj){
+        var url=this.buildURL(this.getPrimaryURL(parent_id,id));
+        return obj.httpPATCH(url,data);
+    }
+    delete(parent_id,id,obj){
+        var url=this.buildURL(this.getPrimaryURL(parent_id,id));
+        return obj.httpDELETE(url);
+    }
+    info(parent_id,id,obj){
+        var url=this.buildURL(this.getPrimaryURL(parent_id,id));
+        return obj.httpGET(url);
+    }
+    all(parent_id,obj){
+        var url=this.buildURL(this.getPrimaryURL(parent_id));
+        return obj.httpGET(url);
+    }
+    buildURL(url,params=""){
+        return (params.length>0)?url+params:url;
+    }
+    getPrimaryURL(parent_id=null,id=null){
+        var returnURL=zohodeskAPI_vars.appBaseURL;
+        var type=this.name;
+        if(parent_id!==null){
+            returnURL+=this.parent_name+"/"+parent_id;
+            if(id!==null){
+                returnURL+="/"+this.name+"/"+id;
+            }else{
+                returnURL+=(type===this.name)?"/"+this.name:"";
+            }
+        }else{
+            returnURL+=this.parent_name;
+        }
+        return returnURL;
+    }
+};
+var tickets=new zohodeskAPI_Object("tickets");
+var comments=new zohodeskAPI_Secondary_Object("comments","tickets");
 
 class zohodeskAPI {
-    constructor(auth_token) {
+    constructor(auth_token,orgId) {
         this.authtoken = auth_token;
-        this.orgId=null;
-    }
-    createTicket(ticket_data,orgId) {
-        var primaryURL="https://desk.zoho.com/api/v1/tickets";
-        var url=this.buildURL(primaryURL);
-        
-        if (this.checkJquey()) {
-            this.httpPOST(url,orgId,ticket_data);
-        }
-    }
-    allTickets(orgId=this.orgId,include_fields=""){
-        var primaryURL="https://desk.zoho.com/api/v1/tickets";
-        var params=(include_fields.length>0)? "include="+include_fields:"";
-        var url=this.buildURL(primaryURL,params);
         this.orgId=orgId;
-        return this.httpGET(url,orgId);
     }
+    createTicket(data) {
+        return tickets.create(data,this);
+    }
+    updateTicket(id,data) {
+        return tickets.update(id,data,this);
+    }
+    ticketDetails(id){
+        return tickets.info(id,this);
+    }
+    allTickets(include_fields=""){
+        return tickets.all(this);
+    }
+    allComments(ticketID){
+        return comments.all(ticketID,this);
+    }
+    createComment(ticketID,comment_data){
+        return comments.create(ticketID,comment_data,this);
+    }
+    updateComment(ticketID,commentID,comment_data){
+        return comments.update(ticketID,commentID,comment_data,this);
+    }
+    deleteComment(ticketID,commentID){
+        return comments.delete(ticketID,commentID,this);
+    }
+    commentDetails(ticketID,commentID){
+        return comments.info(ticketID,commentID,this);
+    }
+    
     checkJquey() {
         return (window.jQuery) ? true : false;
     }
-    buildURL(url,params){
+    buildURL(url,params=""){
         return (params.length>0)?url+params:url;
     }
-    httpGET(url,orgId){
-        this.httpExecute(url,httpSettings("GET",this.httpHeaders(orgId)));
+    httpGET(url){
+        this.httpExecute(url,this.httpSettings("GET",this.httpHeaders()));
     }
-    httpPOST(url,orgId,data){
-        this.httpExecute(url,httpSettings("POST",this.httpHeaders(orgId),data));
+    httpPOST(url,data){
+        this.httpExecute(url,this.httpSettings("POST",this.httpHeaders(),data));
     }
-    httpHeaders(orgId=this.orgId){
+    httpPATCH(url,data){
+        this.httpExecute(url,this.httpSettings("PATCH",this.httpHeaders(),data));
+    }
+    httpDELETE(url){
+        this.httpExecute(url,this.httpSettings("DELETE",this.httpHeaders()));
+    }
+    httpHeaders(){
         var authtoken=this.authtoken;
         return (new Headers({
             "Authorization": authtoken,
-            "orgId": orgId,
+            "orgId": this.orgId,
             "contentType": zohodeskAPI_vars.content_json
         }));
     }
     httpSettings(method,headers,data=""){
-        return {
+        var settingsObj={
             method: method,
             headers: headers,
-            mode: 'cors',
-            body:data
+            mode: 'cors'
         };
+        if(method==="POST"){
+            settingsObj.body=data;
+        }
+        return settingsObj;
     }
     httpExecute(url,http_settings) {
         var api_response;
@@ -62,21 +168,33 @@ class zohodeskAPI {
         }).then(function (result) {
             console.log(JSON.stringify(result));
             $('#TicketList .ResponsePanel').text(JSON.stringify(result, null, 2));
-            debugTraceNative(api_response, api_response.ok);
+            //debugTraceNative(api_response, api_response.ok);
         }).catch(function (error) {
-            debugTraceNative(api_response, api_response.ok);
+            console.log(error);
+            console.log(api_response);
+            //debugTraceNative(api_response, api_response.ok);
         });
     }
-    getPrimaryURL(){
-        
+    getPrimaryURL(type,ticketID=null,commentID=null){
+        var returnURL=zohodeskAPI_vars.appBaseURL;
+        if(ticketID!==null){
+            returnURL+="tickets"+"/"+ticketID;
+            if(commentID!==null){
+                returnURL+="/"+"comments"+"/"+commentID;
+            }else{
+                returnURL+=(type==="comments")?"/"+"comments":"";
+            }
+        }else{
+            returnURL+="tickets";
+        }
+        return returnURL;
     }
     
     assignDefaults(){
         this.authtoken="59550a0e2b1a864a31bef962363e029f";
         this.orgId=652853630;
     }
-}
-;
+};
 $(document).ready(function () {
     $("#getTicketList").click(
             function () {
