@@ -40,14 +40,7 @@
 		      }
 		    );
 		});
-		function debugTrace(jqXHR,status){
-			$('#responseCode').text("Code: "+jqXHR.status+" Status: "+jqXHR.statusText).css({color:(status=='success')?'blue':'red'});
-			console.log(jqXHR);
-		}
-		function debugTraceNative(response,status){
-			$('#responseCode').text("Code: "+response.status+" Status: "+response.statusText).css({color:(status)?'blue':'red'});
-			console.log(response);
-		}
+		
 		function getNativeResponse(){
 				var api_response;
 			    var auth_token = '59550a0e2b1a864a31bef962363e029f'; //your_auth_token
