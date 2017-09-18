@@ -18,12 +18,14 @@ class zohodeskAPI_Object{
         var url=this.buildURL(this.getPrimaryURL(id));
         return obj.httpDELETE(url);
     }
-    info(id,obj){
-        var url=this.buildURL(this.getPrimaryURL(id));
+    info(id,include,obj){
+        var param=(include.length>0)? "?include="+include:"";
+        var url=this.buildURL(this.getPrimaryURL(id),param);
         return obj.httpGET(url);
     }
-    all(obj){
-        var url=this.buildURL(this.getPrimaryURL());
+    all(params,obj){
+        var param=(param.length>0)? "?"+param:"";
+        var url=this.buildURL(this.getPrimaryURL(),param);
         return obj.httpGET(url);
     }
     buildURL(url,params=""){
@@ -60,8 +62,9 @@ class zohodeskAPI_Secondary_Object{
         var url=this.buildURL(this.getPrimaryURL(parent_id,id));
         return obj.httpGET(url);
     }
-    all(parent_id,obj){
-        var url=this.buildURL(this.getPrimaryURL(parent_id));
+    all(parent_id,params,obj){
+        var param=(param.length>0)? "?"+param:"";
+        var url=this.buildURL(this.getPrimaryURL(parent_id),param);
         return obj.httpGET(url);
     }
     buildURL(url,params=""){
@@ -86,6 +89,8 @@ class zohodeskAPI_Secondary_Object{
 var tickets=new zohodeskAPI_Object("tickets");
 var comments=new zohodeskAPI_Secondary_Object("comments","tickets");
 
+var contacts=new zohodeskAPI_Object("contacts");
+
 class zohodeskAPI {
     constructor(auth_token,orgId) {
         this.authtoken = auth_token;
@@ -97,14 +102,14 @@ class zohodeskAPI {
     updateTicket(id,data) {
         return tickets.update(id,data,this);
     }
-    ticketDetails(id){
-        return tickets.info(id,this);
+    ticketDetails(id,params=""){
+        return tickets.info(id,params,this);
     }
-    allTickets(include_fields=""){
-        return tickets.all(this);
+    allTickets(params=""){
+        return tickets.all(params,this);
     }
-    allComments(ticketID){
-        return comments.all(ticketID,this);
+    allComments(ticketID,params=""){
+        return comments.all(ticketID,params,this);
     }
     createComment(ticketID,comment_data){
         return comments.create(ticketID,comment_data,this);
@@ -116,6 +121,21 @@ class zohodeskAPI {
         return comments.delete(ticketID,commentID,this);
     }
     commentDetails(ticketID,commentID){
+        return comments.info(ticketID,commentID,this);
+    }
+    allContacts(ticketID){
+        return comments.all(ticketID,this);
+    }
+    createContact(ticketID,comment_data){
+        return comments.create(ticketID,comment_data,this);
+    }
+    updateContact(ticketID,commentID,comment_data){
+        return comments.update(ticketID,commentID,comment_data,this);
+    }
+    deleteContact(ticketID,commentID){
+        return comments.delete(ticketID,commentID,this);
+    }
+    contactDetails(ticketID,commentID){
         return comments.info(ticketID,commentID,this);
     }
     
