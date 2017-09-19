@@ -472,8 +472,8 @@ class zohodeskAPI {
         this.authtoken = "59550a0e2b1a864a31bef962363e029f";
         this.orgId = 652853630;
     }
-}
-;
+};
+/*
 function ZAPI_Ticket() {
     this.id;
     this.subject = "";
@@ -527,15 +527,23 @@ function ZAPI_Ticket() {
         customerResponseTime: this.customerResponseTime
     };
 }
+*/
 function debugTrace(jqXHR, data, status) {
+    
     console.log(" cons da " + data);
-    //$('#responseCode').text("Code: " + jqXHR.status + " Status: " + jqXHR.statusText).css({color: (status == 'success') ? 'blue' : 'red'});
+    if(window.jQuery){
+    $('#responseCode').text("Code: " + jqXHR.status + " Status: " + jqXHR.statusText).css({color: (status == 'success') ? 'blue' : 'red'});
+    }
     console.log(JSON.stringify(data, null, 2));
-    //$('#TicketList .ResponsePanel').text(JSON.stringify(data, null, 2));
+    if(window.jQuery){
+    $('.ResponsePanel').text(JSON.stringify(data, null, 2));
+    }
     console.log(jqXHR);
 }
 function debugTraceNative(response, status) {
-//$('#responseCode').text("Code: " + response.status + " Status: " + response.statusText).css({color: (status) ? 'blue' : 'red'});
+    if(window.jQuery){
+    $('#responseCode').text("Code: " + response.status + " Status: " + response.statusText).css({color: (status) ? 'blue' : 'red'});
+    }
     console.log(response);
 }
 String.prototype.replaceAll = function (search, replacement) {

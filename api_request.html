@@ -5,6 +5,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <script src="js/zohodesk-sdk.js"></script>
+        <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
     </head>
     <body>
         <script>
@@ -17,7 +18,10 @@
                 }));
             }
         </script>
-        <button onclick="ZohoAPI.createTicket({productId :'', contactId : '215666000000074112', subject : 'Welcome to Zoho Support. Youve got a sample Request!'})">
+        <button onclick="ZohoAPI.createTicket({departmentId:'215666000000006907',contactId:'215666000000074112',productId :'', contactId : '215666000000074112', subject : 'Welcome to Zoho Support. Youve got a sample Request!'})">
+            Create Ticket
+        </button>
+        <button onclick="ZohoAPI.createTicket('hi','215666000000006907','215666000000074112')">
             Create Ticket
         </button>
         <button onclick="ZohoAPI.updateTicket('215666000000074114',{subject:'this is changed'})">
@@ -29,5 +33,14 @@
         <button onclick="ZohoAPI.allTickets({limit:2,sortBy:'-createdTime'})">
             All tickets
         </button>
+        <div id="responseCode">
+		
+	</div>
+	<h1>Response</h1>
+	<pre>
+		<code class="ResponsePanel">
+			
+		</code>
+	</pre>
     </body>
 </html>
