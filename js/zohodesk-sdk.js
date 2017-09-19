@@ -58,6 +58,11 @@ class zohodeskAPI_Object {
     }
 }
 ;
+class zohodeskAPI_ReadOnly_Obj extends zohodeskAPI_Object{
+    create(){}
+    update(){}
+    delete(){}
+};
 class zohodeskAPI_Secondary_Object {
     constructor(name, parent) {
         this.name = name;
@@ -123,8 +128,8 @@ var comments = new zohodeskAPI_Secondary_Object("comments", "tickets");
 var contacts = new zohodeskAPI_Object("contacts");
 var accounts = new zohodeskAPI_Object("accounts");
 var tasks = new zohodeskAPI_Object("tasks");
-var agents = new zohodeskAPI_Object("agents");
-var departments = new zohodeskAPI_Object("departments");
+var agents = new zohodeskAPI_ReadOnly_Obj("agents");
+var departments = new zohodeskAPI_ReadOnly_Obj("departments");
 
 tickets.quickCreate=function(subject,departmentId,contactId,productId="",email="",phone="",description=""){
     return {
@@ -204,8 +209,8 @@ class zohodeskAPI {
     deleteComment(ticketID, commentID) {
         return comments.delete(ticketID, commentID, this);
     }
-    commentDetails(ticketID, commentID) {
-        return comments.info(ticketID, commentID, this);
+    commentDetails(ticketID, commentID,params="") {
+        return comments.info(ticketID, commentID,params, this);
     }
     
     allContacts(params="") {
@@ -221,8 +226,8 @@ class zohodeskAPI {
     deleteContact(id) {
         return contacts.delete(id, this);
     }
-    contactDetails(id) {
-        return contacts.info(id, this);
+    contactDetails(id,params="") {
+        return contacts.info(id,params, this);
     }
     
     allAccounts(params="") {
@@ -238,8 +243,8 @@ class zohodeskAPI {
     deleteAccount(id) {
         return accounts.delete(id, this);
     }
-    accountDetails(id) {
-        return accounts.info(id, this);
+    accountDetails(id,params="") {
+        return accounts.info(id,params, this);
     }
 
     allTasks(params="") {
@@ -255,8 +260,22 @@ class zohodeskAPI {
     deleteTask(id) {
         return tasks.delete(id, this);
     }
-    taskDetails(id) {
-        return tasks.info(id, this);
+    taskDetails(id,params="") {
+        return tasks.info(id,params, this);
+    }
+    
+    allAgents(params="") {
+        return agents.all(params,this);
+    }
+    agentDetails(id,params="") {
+        return agents.info(id,params, this);
+    }
+    
+    allDepartments(params="") {
+        return departments.all(params,this);
+    }
+    departmentDetails(id,params="") {
+        return departments.info(id,params, this);
     }
     
     checkJquey() {
