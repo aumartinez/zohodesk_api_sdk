@@ -424,8 +424,10 @@ class zohodeskAPI {
             //debugTraceNative(api_response, api_response.ok);
         }).catch(function (error) {
             debugTraceNative(api_response, api_response.ok);
-            console.log(error);
-            console.log(api_response);
+            if(!api_response.ok || http_settings.method==="DELETE"){
+                console.log(error);
+                console.log(api_response);
+            }
             //debugTraceNative(api_response, api_response.ok);
         });
     }
@@ -447,7 +449,11 @@ class zohodeskAPI {
                 return data;
             },
             error: function (jqXHR, tranStatus) {
-                debugTrace(jqXHR, 'error');
+                if(http_settings.method==="DELETE" && jqXHR.status=="200"){
+                    debugTrace(jqXHR,{deleted:'true'}, 'success');
+                }else{
+                    debugTrace(jqXHR, tranStatus);
+                }
             }
         });
     }
@@ -530,7 +536,6 @@ function ZAPI_Ticket() {
 */
 function debugTrace(jqXHR, data, status) {
     
-    console.log(" cons da " + data);
     if(window.jQuery){
     $('#responseCode').text("Code: " + jqXHR.status + " Status: " + jqXHR.statusText).css({color: (status == 'success') ? 'blue' : 'red'});
     }
