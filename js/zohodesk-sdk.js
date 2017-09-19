@@ -49,7 +49,7 @@ class zohodeskAPI_Object {
                 params+=item+"="+data[item]+"&";
             }
         }else{
-            return data;
+            return "?"+data;
         }
         return "?"+params.substr(0,params.length-1);
     }
@@ -115,7 +115,7 @@ class zohodeskAPI_Secondary_Object {
                 params+=item+"="+data[item]+"&";
             }
         }else{
-            return data;
+            return "?"+data;
         }
         return "?"+params.substr(0,params.length-1);
     }
