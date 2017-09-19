@@ -1,13 +1,23 @@
 var zohodeskAPI_vars = {
     content_json: "application/json; charset=utf-8",
-    appBaseURL: "https://desk.zoho.com/api/v1/"
+    appBaseURL: "https://desk.zoho.com/api/v1/",
+    requiredFields: {
+        tickets: {subject: "", departmentId: "", contactId: ""},
+        comments: {content: "", isPublic: ""},
+        contacts: {lastName: ""},
+        accounts: {accountName: ""},
+        tasks: {departmentId: "", subject: ""}
+    }
 };
-
 class zohodeskAPI_Object {
-    constructor(name) {
+    constructor(name, requires = null) {
         this.name = name;
+        this.requiredFields = requires;
     }
     create(data, obj) {
+        if (!this.passedRequires(data)) {
+            return false;
+        }
         var url = this.buildURL(this.getPrimaryURL());
         return obj.httpPOST(url, this.objToString(data));
     }
@@ -31,7 +41,7 @@ class zohodeskAPI_Object {
         return obj.httpGET(url);
     }
     buildURL(url, params = null) {
-        return (params!==null) ? url + params : url;
+        return (params !== null) ? url + params : url;
     }
     getPrimaryURL(id = null) {
         var returnURL = zohodeskAPI_vars.appBaseURL;
@@ -42,33 +52,72 @@ class zohodeskAPI_Object {
         }
         return returnURL;
     }
-    handleParameters(data){
-        var params="";
-        if(typeof data==="object"){
+    handleParameters(data) {
+        var params = "";
+        if (typeof data === "object") {
             for (var item in data) {
-                params+=item+"="+data[item]+"&";
+                params += item + "=" + data[item] + "&";
             }
-        }else{
-            return "?"+data;
+        } else {
+            return "?" + data;
         }
-        return "?"+params.substr(0,params.length-1);
+        return "?" + params.substr(0, params.length - 1);
     }
-    objToString(data){
-        return (typeof data==="object")?JSON.stringify(data):data;
+    passedRequires(data) {
+        try {
+            var dataObj = (typeof data === "object") ? data : JSON.parse(data);
+            for (var item in this.requiredFields) {
+                if (dataObj.hasOwnProperty(item)) {
+                    if (!dataObj[item]) {
+                        console.log("ERROR : Field " + item + " is required to create new " + this.name + "");
+                        this.printRequired();
+                        return false;
+                    }
+                } else {
+                    console.log("ERROR : Field " + item + " is required to create new " + this.name + "");
+                    this.printRequired();
+                    return false;
+                }
+            }
+        } catch (exception) {
+            console.log("ERROR : Data is not valid JSON");
+            return false;
+        }
+        console.log("All required fields present");
+        return true;
+    }
+    required() {
+        this.printRequired();
+    }
+    printRequired() {
+        console.log("Required fields to create new " + this.name + " are ");
+        var i = 0;
+        for (var item in this.requiredFields) {
+            console.log((++i) + " : " + item);
+        }
+        console.log("-------------");
+    }
+    objToString(data) {
+        return (typeof data === "object") ? JSON.stringify(data) : data;
     }
 }
 ;
-class zohodeskAPI_ReadOnly_Obj extends zohodeskAPI_Object{
-    create(){}
-    update(){}
-    delete(){}
-};
+class zohodeskAPI_ReadOnly_Obj extends zohodeskAPI_Object {
+    create() {}
+    update() {}
+    delete() {}
+}
+;
 class zohodeskAPI_Secondary_Object {
-    constructor(name, parent) {
+    constructor(name, parent, requires = null) {
         this.name = name;
         this.parent_name = parent;
+        this.requiredFields = requires;
     }
     create(parent_id, data, obj) {
+        if (!this.passedRequires(data)) {
+            return false;
+        }
         var url = this.buildURL(this.getPrimaryURL(parent_id));
         return obj.httpPOST(url, this.objToString(data));
     }
@@ -80,18 +129,18 @@ class zohodeskAPI_Secondary_Object {
         var url = this.buildURL(this.getPrimaryURL(parent_id, id));
         return obj.httpDELETE(url);
     }
-    info(parent_id, id,params, obj) {
+    info(parent_id, id, params, obj) {
         var param = (params) ? this.handleParameters(params) : "";
-        var url = this.buildURL(this.getPrimaryURL(parent_id, id),param);
+        var url = this.buildURL(this.getPrimaryURL(parent_id, id), param);
         return obj.httpGET(url);
     }
     all(parent_id, params, obj) {
-        var param = (params) ? this.handleParameters(params): "";
+        var param = (params) ? this.handleParameters(params) : "";
         var url = this.buildURL(this.getPrimaryURL(parent_id), param);
         return obj.httpGET(url);
     }
     buildURL(url, params = null) {
-        return (params!==null) ? url + params : url;
+        return (params !== null) ? url + params : url;
     }
     getPrimaryURL(parent_id = null, id = null) {
         var returnURL = zohodeskAPI_vars.appBaseURL;
@@ -108,181 +157,222 @@ class zohodeskAPI_Secondary_Object {
         }
         return returnURL;
     }
-    handleParameters(data){
-        var params="";
-        if(typeof data==="object"){
+    handleParameters(data) {
+        var params = "";
+        if (typeof data === "object") {
             for (var item in data) {
-                params+=item+"="+data[item]+"&";
+                params += item + "=" + data[item] + "&";
             }
-        }else{
-            return "?"+data;
+        } else {
+            return "?" + data;
         }
-        return "?"+params.substr(0,params.length-1);
+        return "?" + params.substr(0, params.length - 1);
     }
-    objToString(data){
-        return (typeof data==="object")?JSON.stringify(data):data;
+    passedRequires(data) {
+        try {
+            var dataObj = (typeof data === "object") ? data : JSON.parse(data);
+            for (var item in this.requiredFields) {
+                if (dataObj.hasOwnProperty(item)) {
+                    if (!dataObj[item]) {
+                        console.log("ERROR : Fieldl " + item + " is required to create new " + this.name + "");
+                        this.printRequired();
+                        return false;
+                    }
+                } else {
+                    console.log("ERROR : Fieldl " + item + " is required to create new " + this.name + "");
+                    this.printRequired();
+                    return false;
+                }
+            }
+        } catch (exception) {
+            console.log("ERROR : Data is not valid JSON");
+            return false;
+        }
+        console.log("All required fields present");
+        return true;
     }
-};
-var tickets = new zohodeskAPI_Object("tickets");
-var comments = new zohodeskAPI_Secondary_Object("comments", "tickets");
-var contacts = new zohodeskAPI_Object("contacts");
-var accounts = new zohodeskAPI_Object("accounts");
-var tasks = new zohodeskAPI_Object("tasks");
-var agents = new zohodeskAPI_ReadOnly_Obj("agents");
-var departments = new zohodeskAPI_ReadOnly_Obj("departments");
-
-tickets.quickCreate=function(subject,departmentId,contactId,productId="",email="",phone="",description=""){
-    return {
-        "subject":subject,
-        "departmentId":departmentId,
-        "contactId":contactId,
-        "productId":productId,
-        "email":email,
-        "phone":phone,
-        "description":description
-    };
-};
-comments.quickCreate=function(content,isPublic=true){
-    var public=(isPublic)?"true":"false";
-    return {
-        "content":content,
-        "isPublic":public
-    };
-};
-contacts.quickCreate=function(lastName,firstName="",email="",phone="",description=""){
-    return {
-        "lastName":lastName,
-        "firstName":firstName,
-        "email":email,
-        "phone":phone,
-        "description":description
-    };
-};
-accounts.quickCreate=function(accountName,email="",website=""){
-    return {
-        "accountName":accountName,
-        "email":email,
-        "website":website
-    };
-};
-
-tasks.quickCreate=function(departmentId,subject,description="",priority="",ticketId=null){
-    return {
-        "departmentId":departmentId,
-        "subject":subject,
-        "description":description,
-        "priority":priority,
-        "ticketId":ticketId
-    };
-};
-
-
+    required() {
+        this.printRequired();
+    }
+    printRequired() {
+        console.log("Required fields to create new " + this.name + " are ");
+        var i = 0;
+        for (var item in this.requiredFields) {
+            console.log((++i) + " : " + item);
+        }
+        console.log("-------------");
+    }
+    objToString(data) {
+        return (typeof data === "object") ? JSON.stringify(data) : data;
+    }
+}
+;
+//var tickets = new zohodeskAPI_Object("tickets",zohodeskAPI_vars.requiredFields.tickets);
+//var comments = new zohodeskAPI_Secondary_Object("comments", "tickets", zohodeskAPI_vars.requiredFields.comments);
+//var contacts = new zohodeskAPI_Object("contacts", zohodeskAPI_vars.requiredFields.contacts);
+//var accounts = new zohodeskAPI_Object("accounts", zohodeskAPI_vars.requiredFields.accounts);
+//var tasks = new zohodeskAPI_Object("tasks", zohodeskAPI_vars.requiredFields.tasks);
+//var agents = new zohodeskAPI_ReadOnly_Obj("agents");
+//var departments = new zohodeskAPI_ReadOnly_Obj("departments");
 class zohodeskAPI {
     constructor(auth_token, orgId) {
         this.authtoken = auth_token;
         this.orgId = orgId;
-    }
-    createTicket(data) {
-        var dataObj=(typeof data==="object")?data:tickets.quickCreate.apply(this,arguments);
-        return tickets.create(dataObj, this);
-    }
-    updateTicket(id, data) {
-        return tickets.update(id, data, this);
-    }
-    ticketDetails(id, params = "") {
-        return tickets.info(id, params, this);
-    }
-    allTickets(params = "") {
-        return tickets.all(params, this);
-    }
-    
-    allComments(ticketID, params = "") {
-        return comments.all(ticketID, params, this);
-    }
-    createComment(ticketID, comment_data,is_public=true) {
-        var dataObj=(typeof comment_data==="object")?comment_data:comments.quickCreate.apply(this,arguments);
-        return tickets.create(ticketID,dataObj, this);
-    }
-    updateComment(ticketID, commentID, comment_data) {
-        return comments.update(ticketID, commentID, comment_data, this);
-    }
-    deleteComment(ticketID, commentID) {
-        return comments.delete(ticketID, commentID, this);
-    }
-    commentDetails(ticketID, commentID,params="") {
-        return comments.info(ticketID, commentID,params, this);
-    }
-    
-    allContacts(params="") {
-        return contacts.all(params,this);
-    }
-    createContact(data) {
-        var dataObj=(typeof data==="object")?data:contacts.quickCreate.apply(this,arguments);
-        return contacts.create(dataObj, this);
-    }
-    updateContact(id, data) {
-        return contacts.update(id, data, this);
-    }
-    deleteContact(id) {
-        return contacts.delete(id, this);
-    }
-    contactDetails(id,params="") {
-        return contacts.info(id,params, this);
-    }
-    
-    allAccounts(params="") {
-        return accounts.all(params,this);
-    }
-    createAccount(data) {
-        var dataObj=(typeof data==="object")?data:accounts.quickCreate.apply(this,arguments);
-        return accounts.create(dataObj, this);
-    }
-    updateAccount(id, data) {
-        return accounts.update(id, data, this);
-    }
-    deleteAccount(id) {
-        return accounts.delete(id, this);
-    }
-    accountDetails(id,params="") {
-        return accounts.info(id,params, this);
+        this.tickets = new zohodeskAPI_Object("tickets", zohodeskAPI_vars.requiredFields.tickets);
+        this.comments = new zohodeskAPI_Secondary_Object("comments", "tickets", zohodeskAPI_vars.requiredFields.comments);
+        this.contacts = new zohodeskAPI_Object("contacts", zohodeskAPI_vars.requiredFields.contacts);
+        this.accounts = new zohodeskAPI_Object("accounts", zohodeskAPI_vars.requiredFields.accounts);
+        this.tasks = new zohodeskAPI_Object("tasks", zohodeskAPI_vars.requiredFields.tasks);
+        this.agents = new zohodeskAPI_ReadOnly_Obj("agents");
+        this.departments = new zohodeskAPI_ReadOnly_Obj("departments");
+        
+        this.tickets.quickCreate = function (subject, departmentId, contactId, productId = "", email = "", phone = "", description = "") {
+            return {
+                "subject": subject,
+                "departmentId": departmentId,
+                "contactId": contactId,
+                "productId": productId,
+                "email": email,
+                "phone": phone,
+                "description": description
+            };
+        };
+        this.comments.quickCreate = function (ticketID,content, isPublic = true) {
+            return {
+                "content": content,
+                "isPublic": (isPublic)?"true":"false"
+            };
+        };
+        
+        this.contacts.quickCreate = function (lastName, firstName = "", email = "", phone = "", description = "") {
+            return {
+                "lastName": lastName,
+                "firstName": firstName,
+                "email": email,
+                "phone": phone,
+                "description": description
+            };
+        };
+        this.accounts.quickCreate = function (accountName, email = "", website = "") {
+            return {
+                "accountName": accountName,
+                "email": email,
+                "website": website
+            };
+        };
+        this.tasks.quickCreate = function (departmentId, subject, description = "", priority = "", ticketId = null) {
+            return {
+                "departmentId": departmentId,
+                "subject": subject,
+                "description": description,
+                "priority": priority,
+                "ticketId": ticketId
+            };
+        };
+
     }
 
-    allTasks(params="") {
-        return tasks.all(params,this);
+    createTicket(data) {
+        var dataObj = (typeof data === "object") ? data : this.tickets.quickCreate.apply(this, arguments);
+        return this.tickets.create(dataObj, this);
+    }
+    updateTicket(id, data) {
+        return this.tickets.update(id, data, this);
+    }
+    ticketDetails(id, params = "") {
+        return this.tickets.info(id, params, this);
+    }
+    allTickets(params = "") {
+        return this.tickets.all(params, this);
+    }
+
+    allComments(ticketID, params = "") {
+        return this.comments.all(ticketID, params, this);
+    }
+    createComment(ticketID, comment_data, is_public = true) {
+        var dataObj = (typeof comment_data === "object") ? comment_data : this.comments.quickCreate.apply(this, arguments);
+        return this.comments.create(ticketID, dataObj, this);
+    }
+    updateComment(ticketID, commentID, comment_data) {
+        return this.comments.update(ticketID, commentID, comment_data, this);
+    }
+    deleteComment(ticketID, commentID) {
+        return this.comments.delete(ticketID, commentID, this);
+    }
+    commentDetails(ticketID, commentID, params = "") {
+        return this.comments.info(ticketID, commentID, params, this);
+    }
+
+    allContacts(params = "") {
+        return this.contacts.all(params, this);
+    }
+    createContact(data) {
+        var dataObj = (typeof data === "object") ? data : this.contacts.quickCreate.apply(this, arguments);
+        return this.contacts.create(dataObj, this);
+    }
+    updateContact(id, data) {
+        return this.contacts.update(id, data, this);
+    }
+    deleteContact(id) {
+        return this.contacts.delete(id, this);
+    }
+    contactDetails(id, params = "") {
+        return this.contacts.info(id, params, this);
+    }
+
+    allAccounts(params = "") {
+        return this.accounts.all(params, this);
+    }
+    createAccount(data) {
+        var dataObj = (typeof data === "object") ? data : this.accounts.quickCreate.apply(this, arguments);
+        return this.accounts.create(dataObj, this);
+    }
+    updateAccount(id, data) {
+        return this.accounts.update(id, data, this);
+    }
+    deleteAccount(id) {
+        return this.accounts.delete(id, this);
+    }
+    accountDetails(id, params = "") {
+        return this.accounts.info(id, params, this);
+    }
+
+    allTasks(params = "") {
+        return this.tasks.all(params, this);
     }
     createTask(data) {
-        var dataObj=(typeof data==="object")?data:tasks.quickCreate.apply(this,arguments);
-        return tasks.create(dataObj, this);
+        var dataObj = (typeof data === "object") ? data : this.tasks.quickCreate.apply(this, arguments);
+        return this.tasks.create(dataObj, this);
     }
     updateTask(id, data) {
-        return tasks.update(id, data, this);
+        return this.tasks.update(id, data, this);
     }
     deleteTask(id) {
-        return tasks.delete(id, this);
+        return this.tasks.delete(id, this);
     }
-    taskDetails(id,params="") {
-        return tasks.info(id,params, this);
+    taskDetails(id, params = "") {
+        return this.tasks.info(id, params, this);
     }
-    
-    allAgents(params="") {
-        return agents.all(params,this);
+
+    allAgents(params = "") {
+        return this.agents.all(params, this);
     }
-    agentDetails(id,params="") {
-        return agents.info(id,params, this);
+    agentDetails(id, params = "") {
+        return this.agents.info(id, params, this);
     }
-    
-    allDepartments(params="") {
-        return departments.all(params,this);
+
+    allDepartments(params = "") {
+        return this.departments.all(params, this);
     }
-    departmentDetails(id,params="") {
-        return departments.info(id,params, this);
+    departmentDetails(id, params = "") {
+        return this.departments.info(id, params, this);
     }
-    
+
     checkJquey() {
         return (window.jQuery) ? true : false;
     }
     buildURL(url, params = null) {
-        return (params!==null) ? url + params : url;
+        return (params !== null) ? url + params : url;
     }
     httpGET(url) {
         this.httpExecute(url, this.httpSettings("GET", this.httpHeaders()));
@@ -302,7 +392,6 @@ class zohodeskAPI {
             "Authorization": authtoken,
             "orgId": this.orgId,
             "contentType": zohodeskAPI_vars.content_json,
-            
         }));
     }
     httpSettings(method, headers, data = "") {
@@ -311,15 +400,15 @@ class zohodeskAPI {
             headers: headers,
             mode: 'cors'
         };
-        if (method === "POST" || method==="PATCH" || method==="PUT") {
+        if (method === "POST" || method === "PATCH" || method === "PUT") {
             settingsObj.body = data;
         }
         return settingsObj;
     }
     httpExecute(url, http_settings) {
         var api_response;
-        if(this.checkJquey()){
-            this.httpAjax(url,http_settings);
+        if (this.checkJquey()) {
+            this.httpAjax(url, http_settings);
             return false;
         }
         fetch(url, http_settings).then(function (response) {
@@ -341,8 +430,8 @@ class zohodeskAPI {
         });
     }
     httpAjax(url, http_settings) {
-        console.log("URL:"+url);
-        console.log("htt:"+http_settings.headers);
+        console.log("URL:" + url);
+        console.log("htt:" + http_settings.headers);
         $.ajax({
             method: http_settings.method,
             url: url,
@@ -352,9 +441,9 @@ class zohodeskAPI {
                 "orgId": this.orgId
             },
             contentType: http_settings.contentType,
-            data:http_settings.body,
+            data: http_settings.body,
             success: function (data, textStatus, jqXHR) {
-                debugTrace(jqXHR,data, 'success');
+                debugTrace(jqXHR, data, 'success');
                 return data;
             },
             error: function (jqXHR, tranStatus) {
@@ -376,19 +465,20 @@ class zohodeskAPI {
         }
         return returnURL;
     }
-    checkEnoughArgs(obj){
-        
+    checkEnoughArgs(obj) {
+
     }
     assignDefaults() {
         this.authtoken = "59550a0e2b1a864a31bef962363e029f";
         this.orgId = 652853630;
     }
-};
-function ZAPI_Ticket(){
+}
+;
+function ZAPI_Ticket() {
     this.id;
-    this.subject="";
-    this.departmentId="";
-    this.contactId="";
+    this.subject = "";
+    this.departmentId = "";
+    this.contactId = "";
     this.productId;
     this.uploads;
     this.email;
@@ -417,38 +507,38 @@ function ZAPI_Ticket(){
     this.ticketNumber;
     this.contact;
     this.customerResponseTime;
-    this.required={
-        subject:this.subject,departmentId:this.departmentId,contactId:this.contactId
+    this.required = {
+        subject: this.subject, departmentId: this.departmentId, contactId: this.contactId
     };
-    this.readOnly={
-        id:this.id,
-        createdTime:this.createdTime,
-        modifiedTime:this.modifiedTime,
-        timeEntryCount:this.timeEntryCount,
-        approvalCount:this.approvalCount,
-        commentCount:this.commentCount,
-        attachmentCount:this.attachmentCount,
-        taskCount:this.taskCount,
-        threadCount:this.threadCount,
-        product:this.product,
-        closedTime:this.closedTime,
-        ticketNumber:this.ticketNumber,
-        contact:this.contact,
-        customerResponseTime:this.customerResponseTime
+    this.readOnly = {
+        id: this.id,
+        createdTime: this.createdTime,
+        modifiedTime: this.modifiedTime,
+        timeEntryCount: this.timeEntryCount,
+        approvalCount: this.approvalCount,
+        commentCount: this.commentCount,
+        attachmentCount: this.attachmentCount,
+        taskCount: this.taskCount,
+        threadCount: this.threadCount,
+        product: this.product,
+        closedTime: this.closedTime,
+        ticketNumber: this.ticketNumber,
+        contact: this.contact,
+        customerResponseTime: this.customerResponseTime
     };
 }
-function debugTrace(jqXHR,data, status) {
-    console.log(" cons da "+data);
+function debugTrace(jqXHR, data, status) {
+    console.log(" cons da " + data);
     //$('#responseCode').text("Code: " + jqXHR.status + " Status: " + jqXHR.statusText).css({color: (status == 'success') ? 'blue' : 'red'});
     console.log(JSON.stringify(data, null, 2));
     //$('#TicketList .ResponsePanel').text(JSON.stringify(data, null, 2));
     console.log(jqXHR);
 }
 function debugTraceNative(response, status) {
-    //$('#responseCode').text("Code: " + response.status + " Status: " + response.statusText).css({color: (status) ? 'blue' : 'red'});
+//$('#responseCode').text("Code: " + response.status + " Status: " + response.statusText).css({color: (status) ? 'blue' : 'red'});
     console.log(response);
 }
-String.prototype.replaceAll = function(search, replacement) {
+String.prototype.replaceAll = function (search, replacement) {
     var target = this;
     return target.split(search).join(replacement);
 };
