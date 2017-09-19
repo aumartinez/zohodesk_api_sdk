@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="js/zohodesk-sdk.js"></script>
+    </head>
+    <body>
+        <script>
+            var ZohoAPI=new zohodeskAPI('59550a0e2b1a864a31bef962363e029f','652853630');
+            function sendReq(){ 
+                console.log(ZohoAPI.createTicket({
+                    subject:'This is the subject',
+                    departmentId:'215666000000006907',
+                    contactId:'215666000000074112'
+                }));
+            }
+        </script>
+        <button onclick="ZohoAPI.createTicket({productId :'', contactId : '215666000000074112', subject : 'Welcome to Zoho Support. Youve got a sample Request!'})">
+            Create Ticket
+        </button>
+        <button onclick="ZohoAPI.updateTicket('215666000000074114',{subject:'this is changed'})">
+            Update Ticket
+        </button>
+        <button onclick="ZohoAPI.ticketDetails('215666000000131051')">
+            Ticket Info Ticket
+        </button>
+        <button onclick="ZohoAPI.allTickets({limit:2,sortBy:'-createdTime'})">
+            All tickets
+        </button>
+    </body>
+</html>
