@@ -276,7 +276,8 @@ class zohodeskAPI {
     }
 
     createTicket(data) {
-        var dataObj = (typeof data === "object") ? data : this.tickets.quickCreate.apply(this, arguments);
+        var dataJsonObj=this.getValidJson(data);
+        var dataObj = (dataJsonObj) ? dataJsonObj : this.tickets.quickCreate.apply(this, arguments);
         return this.tickets.create(dataObj, this);
     }
     updateTicket(id, data) {
@@ -293,7 +294,8 @@ class zohodeskAPI {
         return this.comments.all(ticketID, params, this);
     }
     createComment(ticketID, comment_data, is_public = true) {
-        var dataObj = (typeof comment_data === "object") ? comment_data : this.comments.quickCreate.apply(this, arguments);
+        var dataJsonObj=this.getValidJson(comment_data);
+        var dataObj = (dataJsonObj) ? dataJsonObj : this.comments.quickCreate.apply(this, arguments);
         return this.comments.create(ticketID, dataObj, this);
     }
     updateComment(ticketID, commentID, comment_data) {
@@ -310,7 +312,8 @@ class zohodeskAPI {
         return this.contacts.all(params, this);
     }
     createContact(data) {
-        var dataObj = (typeof data === "object") ? data : this.contacts.quickCreate.apply(this, arguments);
+        var dataJsonObj=this.getValidJson(data);
+        var dataObj = (dataJsonObj) ? dataJsonObj : this.contacts.quickCreate.apply(this, arguments);
         return this.contacts.create(dataObj, this);
     }
     updateContact(id, data) {
@@ -324,7 +327,8 @@ class zohodeskAPI {
         return this.accounts.all(params, this);
     }
     createAccount(data) {
-        var dataObj = (typeof data === "object") ? data : this.accounts.quickCreate.apply(this, arguments);
+        var dataJsonObj=this.getValidJson(data);
+        var dataObj = (dataJsonObj) ? dataJsonObj : this.accounts.quickCreate.apply(this, arguments);
         return this.accounts.create(dataObj, this);
     }
     updateAccount(id, data) {
@@ -338,7 +342,8 @@ class zohodeskAPI {
         return this.tasks.all(params, this);
     }
     createTask(data) {
-        var dataObj = (typeof data === "object") ? data : this.tasks.quickCreate.apply(this, arguments);
+        var dataJsonObj=this.getValidJson(data);
+        var dataObj = (dataJsonObj) ? dataJsonObj : this.tasks.quickCreate.apply(this, arguments);
         return this.tasks.create(dataObj, this);
     }
     updateTask(id, data) {
@@ -450,6 +455,25 @@ class zohodeskAPI {
                 }
             }
         });
+    }
+    getValidJson(string) {
+        console.log(string);
+        switch (typeof string){
+            case "object":
+                return string;
+                break;
+            case "string":
+                try{
+                    var obj=JSON.parse(string);
+                    return obj;
+                }catch (exception) {
+                    return false;
+                }
+                return false;
+                break;
+            default :
+                return false;
+        }
     }
     checkEnoughArgs(passed,needed) {
         return needed>=passed;
