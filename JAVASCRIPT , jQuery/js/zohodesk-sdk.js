@@ -316,9 +316,6 @@ class zohodeskAPI {
     updateContact(id, data) {
         return this.contacts.update(id, data, this);
     }
-    deleteContact(id) {
-        return this.contacts.delete(id, this);
-    }
     contactDetails(id, params = "") {
         return this.contacts.info(id, params, this);
     }
@@ -333,9 +330,6 @@ class zohodeskAPI {
     updateAccount(id, data) {
         return this.accounts.update(id, data, this);
     }
-    deleteAccount(id) {
-        return this.accounts.delete(id, this);
-    }
     accountDetails(id, params = "") {
         return this.accounts.info(id, params, this);
     }
@@ -349,9 +343,6 @@ class zohodeskAPI {
     }
     updateTask(id, data) {
         return this.tasks.update(id, data, this);
-    }
-    deleteTask(id) {
-        return this.tasks.delete(id, this);
     }
     taskDetails(id, params = "") {
         return this.tasks.info(id, params, this);
