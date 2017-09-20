@@ -153,7 +153,10 @@ class zohodeskAPI_Secondary_Object {
                 returnURL += (type === this.name) ? "/" + this.name : "";
             }
         } else {
-            returnURL += this.parent_name;
+            console.log("ERROR : "+this.parent_name+"-ID is missing ");
+            throw new Error("ERROR : "+this.parent_name+"-ID is missing ");
+            return false;
+            //returnURL += this.parent_name;
         }
         return returnURL;
     }
@@ -457,22 +460,8 @@ class zohodeskAPI {
             }
         });
     }
-    getPrimaryURL(type, ticketID = null, commentID = null) {
-        var returnURL = zohodeskAPI_vars.appBaseURL;
-        if (ticketID !== null) {
-            returnURL += "tickets" + "/" + ticketID;
-            if (commentID !== null) {
-                returnURL += "/" + "comments" + "/" + commentID;
-            } else {
-                returnURL += (type === "comments") ? "/" + "comments" : "";
-            }
-        } else {
-            returnURL += "tickets";
-        }
-        return returnURL;
-    }
-    checkEnoughArgs(obj) {
-
+    checkEnoughArgs(passed,needed) {
+        return needed>=passed;
     }
     assignDefaults() {
         this.authtoken = "59550a0e2b1a864a31bef962363e029f";
