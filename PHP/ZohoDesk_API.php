@@ -471,7 +471,7 @@ class zohodeskAPI {
         curl_setopt($curl,CURLOPT_CUSTOMREQUEST,$method);
         
         if($method=="POST" || $method=="PATCH"){
-            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+            curl_setopt($curl, CURLOPT_POSTFIELDS, (gettype($data)==="string")?$data:json_encode($data));
         }
         $response= curl_exec($curl);
         curl_close($curl);
@@ -497,7 +497,7 @@ class zohodeskAPI {
             case "string":
                 $obj=json_decode($string);
                 if(json_last_error() == JSON_ERROR_NONE){
-                    return $obj;
+                    return (gettype($obj)==="object")?$obj:FALSE;
                 }
                 return FALSE;
                 break;
