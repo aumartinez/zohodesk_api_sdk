@@ -457,7 +457,7 @@ class zohodeskAPI {
         });
     }
     getValidJson(string) {
-        console.log(string);
+       // console.log(string);
         switch (typeof string){
             case "object":
                 return string;
@@ -465,8 +465,9 @@ class zohodeskAPI {
             case "string":
                 try{
                     var obj=JSON.parse(string);
-                    return obj;
-                }catch (exception) {
+                    return (typeof obj==="object")?obj:false;
+                }
+                catch (exception) {
                     return false;
                 }
                 return false;

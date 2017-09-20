@@ -57,13 +57,13 @@ class zohodeskAPI_Object{
     function handleParameters($data) {
         $params = "";
         if (gettype($data) === "object"){
-            foreach ($data as $item) {
-                $params .= $item . "=" . $data[$item] . "&";
+            foreach ($data as $key=>$value) {
+                $params .= $key . "=" . $value . "&";
             }
         } else {
             return "?" . $data;
         }
-        return "?" . $params.substr(0, $params.length - 1);
+        return "?" . $params.substr(0, strlen($params) - 1);
     }
     function passedRequires($data) {
         try {
@@ -72,7 +72,7 @@ class zohodeskAPI_Object{
             if(gettype($data)=="array" || gettype($data)=="object"){
                 foreach ($this->requiredFields as $item=>$value) {
                     if (($dataType=="array") ? array_key_exists($item, $dataObj): property_exists($dataObj, $item)) {
-                        if (($dataType=="array")?!$dataObj[$item]:!$dataObj->$item) {
+                        if ($value) {
                             logio("ERROR : Field " . $item . " is required to create new " . $this->name . "");
                             $this->printRequired();
                             return false;
@@ -89,7 +89,6 @@ class zohodeskAPI_Object{
             logio("ERROR : Data is not valid JSON".$e);
             return false;
         }
-        logio("All required fields present");
         return true;
     }
     function required() {
@@ -166,9 +165,9 @@ class zohodeskAPI_Secondary_Object {
         return ($params !== null) ? $url . $params : $url;
     }
     function getPrimaryURL($parent_id = null, $id = null) {
-        $returnURL = zohodeskAPI_vars.appBaseURL;
+        $returnURL = ZOHOBASE_URL;
         $type = $this->name;
-        if ($parent_id !== null) {
+        if ($parent_id !== null && trim($parent_id)!=="") {
             $returnURL .= $this->parent_name . "/" . $parent_id;
             if ($id !== null) {
                 $returnURL .= "/" . $this->name . "/" . $id;
@@ -176,7 +175,13 @@ class zohodeskAPI_Secondary_Object {
                 $returnURL .= ($type === $this->name) ? "/" . $this->name : "";
             }
         } else {
-            $returnURL .= $this->parent_name;
+            try{
+                throw new Exception("ERROR : ".$this->parent_name."-ID is empty or missing ");
+            }
+            catch (Exception $e){
+                echo $e->getMessage();
+            }
+            return FALSE;
         }
         return $returnURL;
     }
@@ -194,24 +199,23 @@ class zohodeskAPI_Secondary_Object {
     function passedRequires($data) {
         try {
             $dataObj = (gettype($data) === "object") ? $data :json_decode($data);
-            foreach ($this->requiredFields as $item) {
-                if ($dataObj->hasOwnProperty($item)) {
-                    if (!$dataObj[$item]) {
-                        logio("ERROR : Fieldl " . $item . " is required to create new " . $this->name . "");
+            foreach ($this->requiredFields as $item=>$value) {
+                if (property_exists($dataObj, $item)) {
+                    if (!$data->$item) {
+                        logio("ERROR : Field " . $item . " is empty & required to create new " . $this->name . "");
                         $this->printRequired();
                         return false;
                     }
                 } else {
-                    logio("ERROR : Fieldl " . $item . " is required to create new " . $this->name . "");
+                    logio("ERROR : Field " . $item . " is required to create new " . $this->name . "");
                     $this->printRequired();
                     return false;
                 }
             }
         } catch (Exception $e) {
-            logio("ERROR : Data is not valid JSON");
+            logio("ERROR : Data is not valid JSON".$e->getMessage());
             return false;
         }
-        logio("All required fields present");
         return true;
     }
     function required() {
@@ -220,7 +224,7 @@ class zohodeskAPI_Secondary_Object {
     function printRequired() {
         logio("Required fields to create new " . $this->name . " are ");
         $i = 0;
-        foreach ($this->requiredFields as $item) {
+        foreach ($this->requiredFields as $item=>$value) {
             logio((++$i) . " : " . $item);
         }
         logio("-------------");
@@ -278,7 +282,7 @@ class zohodeskAPI {
         $this->departments = new zohodeskAPI_ReadOnly_Obj("departments");
         
         $this->tickets->quickCreate = function ($subject, $departmentId, $contactId, $productId = "", $email = "", $phone = "", $description = "") {
-            return array(
+            return json_encode(array(
                 "subject"=> $subject,
                 "departmentId"=> $departmentId,
                 "contactId"=> $contactId,
@@ -286,43 +290,50 @@ class zohodeskAPI {
                 "email"=> $email,
                 "phone"=> $phone,
                 "description"=> $description
-            );
+            ));
         };
         $this->comments->quickCreate = function ($ticketID,$content, $isPublic = true) {
-            return array(
+            return json_encode(array(
                 "content"=> $content,
                 "isPublic"=> ($isPublic)?"true":"false"
-            );
+            ));
         };
         
         $this->contacts->quickCreate = function ($lastName, $firstName = "", $email = "", $phone = "", $description = "") {
-            return array(
+            return json_encode(array(
                 "lastName"=> $lastName,
                 "firstName"=> $firstName,
                 "email"=> $email,
                 "phone"=> $phone,
                 "description"=> $description
-            );
+            ));
         };
         $this->accounts->quickCreate = function ($accountName, $email = "", $website = "") {
-            return array(
+            return json_encode(array(
                 "accountName"=> $accountName,
                 "email"=> $email,
                 "website"=> $website
-            );
+            ));
         };
         $this->tasks->quickCreate = function ($departmentId, $subject, $description = "", $priority = "", $ticketId = null) {
-            return array(
+            return json_encode(array(
                 "departmentId"=> $departmentId,
                 "subject"=> $subject,
                 "description"=> $description,
                 "priority"=> $priority,
                 "ticketId"=> $ticketId
-            );
+            ));
+        };
+        $this->tasks->tasksOfTicket = function ($ticketId,$params,$obj) {
+            $param = ($params) ? $this->tasks->handleParameters($params) : "";
+            $url = $this->tasks->buildURL(ZOHOBASE_URL."tickets/$ticketId/tasks", $param);
+            return $obj->httpGET($url);
         };
 
     }
-
+    static function getBaseUrl(){
+        return ZOHOBASE_URL;
+    }
     function createTicket($data) {
         $arguments = func_get_args();
         $dataJsonObj= $this->getValidJson($data);
@@ -403,16 +414,19 @@ class zohodeskAPI {
         $arguments = func_get_args();
         $dataJsonObj= $this->getValidJson($data);
         $dataObj = ($dataJsonObj)?$dataJsonObj: call_user_func_array($this->tasks->quickCreate,$arguments);
-        return $this->tasks.create($dataObj,$this);
+        return $this->tasks->create($dataObj,$this);
     }
     function updateTask($id, $data) {
-        return $this->tasks.update($id, $data,$this);
+        return $this->tasks->update($id, $data,$this);
     }
     function deleteTask($id) {
-        return $this->tasks.delete($id,$this);
+        return $this->tasks->delete($id,$this);
     }
     function taskDetails($id, $params = "") {
-        return $this->tasks.info($id, $params,$this);
+        return $this->tasks->info($id, $params,$this);
+    }
+    function ticketTasks($ticketId,$params=""){
+        return $this->tasks->tasksOfTicket($ticketId, $params,$this);
     }
 
     function allAgents($params = "") {
