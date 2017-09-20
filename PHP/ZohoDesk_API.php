@@ -1,7 +1,7 @@
 <?php
 const ZOHOBASE_URL="https://desk.zoho.com/api/v1/";
 function logio($txt){
-    echo $txt;
+    echo $txt."<br><br>";
 }
 
 class zohodeskAPI_Object{
@@ -85,7 +85,7 @@ class zohodeskAPI_Object{
             logio("ERROR : Data is not valid JSON".$e);
             return false;
         }
-        echo("All required fields present");
+        logio("All required fields present");
         return true;
     }
     function required() {
@@ -94,18 +94,16 @@ class zohodeskAPI_Object{
     function printRequired() {
         logio("Required fields to create new " . $this->name . " are ");
         $i = 0;
-        foreach ($this->requiredFields as $item) {
-            logio((++$i) . " : " . $item);
+        foreach ($this->requiredFields as $key=>$value) {
+            logio((++$i) . " : " . $key);
         }
         logio("-------------");
     }
     function objToString($data) {
         $json="";
-        print_r($data);
         if(gettype($data)=="array"){
             $json="{";
             foreach ($data as $key=>$value){
-                echo " key id $key val $value";
                 $json.=$key.':"'.$value.'",';
             }
             $json=substr($json,0, strlen($json)-1);
@@ -119,7 +117,6 @@ class zohodeskAPI_Object{
                 logio($data."is not a valid json");
             }
         }
-        logio("JSON IS ".$json);
         return $data;
     }
     function validJson($string) {
@@ -311,7 +308,7 @@ class zohodeskAPI {
 
     function createTicket($data) {
         $arguments = func_get_args();
-        $dataObj = (gettype($data) === "object") ? $data : $this->tickets->quickCreate($arguments);
+        $dataObj = (gettype($data) === "array") ? $data : $this->tickets->quickCreate($arguments);
         return $this->tickets->create($dataObj,$this);
     }
     function updateTicket($id, $data) {
@@ -329,7 +326,7 @@ class zohodeskAPI {
     }
     function createComment($ticketID, $comment_data, $is_public = true) {
         $arguments = func_get_args();
-        $dataObj = (gettype($comment_data) === "object") ? $comment_data : $this->comments->quickCreate($arguments);
+        $dataObj = (gettype($comment_data) === "array") ? $comment_data : $this->comments->quickCreate($arguments);
         return $this->comments->create($ticketID, $dataObj,$this);
     }
     function updateComment($ticketID, $commentID, $comment_data) {
@@ -347,7 +344,7 @@ class zohodeskAPI {
     }
     function createContact($data) {
         $arguments = func_get_args();
-        $dataObj = (gettype($data) === "object") ? $data : $this->contacts->quickCreate($arguments);
+        $dataObj = (gettype($data) === "array") ? $data : $this->contacts->quickCreate($arguments);
         return $this->contacts->create($dataObj,$this);
     }
     function updateContact($id, $data) {
@@ -365,7 +362,7 @@ class zohodeskAPI {
     }
     function createAccount($data) {
         $arguments= func_get_args();
-        $dataObj = (gettype($data) === "object") ? $data : $this->accounts->quickCreate($arguments);
+        $dataObj = (gettype($data) === "array") ? $data : call_user_func_array($this->accounts->quickCreate,$arguments);
         return $this->accounts->create($dataObj,$this);
     }
     function updateAccount($id, $data) {
@@ -383,7 +380,7 @@ class zohodeskAPI {
     }
     function createTask($data) {
         $arguments = func_get_args();
-        $dataObj = (gettype($data) === "object") ? $data : $this->tasks->quickCreate($arguments);
+        $dataObj = (gettype($data) === "array") ? $data : $this->tasks->quickCreate($arguments);
         return $this->tasks.create($dataObj,$this);
     }
     function updateTask($id, $data) {
@@ -441,7 +438,6 @@ class zohodeskAPI {
             curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
         }
         $response= curl_exec($curl);
-        print_r(json_encode($data));
         
         print_r($response);
         curl_close($curl);
