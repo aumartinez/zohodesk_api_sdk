@@ -16,7 +16,7 @@ $options=new stdClass();
 $options->limit=1;
 
 $som=new zohodeskAPI('59550a0e2b1a864a31bef962363e029f',652853630);
-$som->createTask('215666000000006907',"new task from js 4","desc 1","prio",'215666000000154051');
+$som->allTickets();
 
 
 

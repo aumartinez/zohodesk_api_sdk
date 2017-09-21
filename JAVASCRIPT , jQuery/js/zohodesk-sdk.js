@@ -374,16 +374,16 @@ class zohodeskAPI {
         return (params !== null) ? url + params : url;
     }
     httpGET(url) {
-        this.httpExecute(url, this.httpSettings("GET", this.httpHeaders()));
+        return this.httpExecute(url, this.httpSettings("GET", this.httpHeaders()));
     }
     httpPOST(url, data) {
-        this.httpExecute(url, this.httpSettings("POST", this.httpHeaders(), data));
+        return this.httpExecute(url, this.httpSettings("POST", this.httpHeaders(), data));
     }
     httpPATCH(url, data) {
-        this.httpExecute(url, this.httpSettings("PATCH", this.httpHeaders(), data));
+        return this.httpExecute(url, this.httpSettings("PATCH", this.httpHeaders(), data));
     }
     httpDELETE(url) {
-        this.httpExecute(url, this.httpSettings("DELETE", this.httpHeaders()));
+        return this.httpExecute(url, this.httpSettings("DELETE", this.httpHeaders()));
     }
     httpHeaders() {
         var authtoken = this.authtoken;
@@ -406,11 +406,12 @@ class zohodeskAPI {
     }
     httpExecute(url, http_settings) {
         var api_response;
+        var returnResult=null;
         if (this.checkJquey()) {
-            this.httpAjax(url, http_settings);
+            return this.httpAjax(url, http_settings);
             return false;
         }
-        fetch(url, http_settings).then(function (response) {
+        return fetch(url, http_settings).then(function (response) {
             api_response = response;
             if (response.ok) {
                 return response.json();
@@ -419,23 +420,30 @@ class zohodeskAPI {
         }).then(function (result) {
             debugTraceNative(api_response, api_response.ok);
             console.log(JSON.stringify(result));
+            returnResult= result;
+            returnThis(result);
             //$('#TicketList .ResponsePanel').text(JSON.stringify(result, null, 2));
             //debugTraceNative(api_response, api_response.ok);
         }).catch(function (error) {
-            debugTraceNative(api_response, api_response.ok);
+            console.log(error);
+                console.log(api_response);
+//            debugTraceNative(api_response, api_response.ok);
             if(!api_response.ok || http_settings.method==="DELETE"){
                 console.log(error);
                 console.log(api_response);
             }
             //debugTraceNative(api_response, api_response.ok);
         });
+        
     }
     httpAjax(url, http_settings) {
         console.log("URL:" + url);
         console.log("htt:" + http_settings.headers);
+        var result=null;
         $.ajax({
             method: http_settings.method,
             url: url,
+            async: false,
             dataType: "json",
             headers: {
                 "Authorization": this.authtoken,
@@ -444,8 +452,7 @@ class zohodeskAPI {
             contentType: http_settings.contentType,
             data: http_settings.body,
             success: function (data, textStatus, jqXHR) {
-                debugTrace(jqXHR, data, 'success');
-                return data;
+                result=data;
             },
             error: function (jqXHR, tranStatus) {
                 if(http_settings.method==="DELETE" && jqXHR.status=="200"){
@@ -455,6 +462,7 @@ class zohodeskAPI {
                 }
             }
         });
+        return result;
     }
     getValidJson(string) {
        // console.log(string);
@@ -539,6 +547,10 @@ function ZAPI_Ticket() {
     };
 }
 */
+function returnThis(data){
+    console.log(data);
+    return data;
+}
 function debugTrace(jqXHR, data, status) {
     
     if(window.jQuery){
