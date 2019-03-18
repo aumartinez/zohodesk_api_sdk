@@ -42,8 +42,8 @@
     
     //Create a contact
     //$contactFields = array(
-                        "lastName" => "Vijaaaay" 
-                    );
+    //                    "lastName" => "Vijaaaay" 
+    //                );
     //$createdContact = $ZOHODESK_API->createContact($contactFields);
     
     //echo json_encode($createdContact);
