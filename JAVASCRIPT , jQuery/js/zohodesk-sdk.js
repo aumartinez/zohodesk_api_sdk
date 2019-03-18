@@ -440,6 +440,7 @@ class zohodeskAPI {
         console.log("URL:" + url);
         console.log("htt:" + http_settings.headers);
         var result=null;
+        url='https://mobilesupport.localzoho.com/api/v1/tickets/3220000001196208/threads?authtoken=7e5631cec7b6144db56a834f663aa4cd&orgId=11141888';
         $.ajax({
             method: http_settings.method,
             url: url,

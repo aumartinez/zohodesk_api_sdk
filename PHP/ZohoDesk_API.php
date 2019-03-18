@@ -1,5 +1,7 @@
 <?php
+
 const ZOHOBASE_URL="https://desk.zoho.com/api/v1/";
+
 function logio($txt){
     echo $txt."<br><br>";
 }
@@ -32,7 +34,7 @@ class zohodeskAPI_Object{
         $url = $this->buildURL($this->getPrimaryURL($id));
         return $obj->httpDELETE($url);
     }
-    function info($id, $params, $obj) {
+    function get($id, $params, $obj) {
         $param = ($params) ? $this->handleParameters($params) : "";
         $url = $this->buildURL($this->getPrimaryURL($id), $param);
         return $obj->httpGET($url);
@@ -151,7 +153,7 @@ class zohodeskAPI_Secondary_Object {
         $url = $this->buildURL($this->getPrimaryURL($parent_id, $id));
         return $obj->httpDELETE($url);
     }
-    function info($parent_id, $id, $params, $obj) {
+    function get($parent_id, $id, $params, $obj) {
         $param = ($params) ? $this->handleParameters($params) : "";
         $url = $this->buildURL($this->getPrimaryURL($parent_id, $id), $param);
         return $obj->httpGET($url);
@@ -343,11 +345,14 @@ class zohodeskAPI {
     function updateTicket($id, $data) {
         return $this->tickets->update($id, $data,$this);
     }
-    function ticketDetails($id, $params = "") {
-        return $this->tickets->info($id, $params,$this);
+    function getTicket($id, $params = "") {
+        return $this->tickets->get($id, $params,$this);
     }
-    function allTickets($params = "") {
+    function getTickets($params = "") {
         return $this->tickets->all($params,$this);
+    }
+    function deleteTicket($params = "") {
+        return $this->tickets->delete($params,$this);
     }
 
     function allComments($ticketID, $params = "") {
@@ -365,11 +370,11 @@ class zohodeskAPI {
     function deleteComment($ticketID, $commentID) {
         return $this->comments->delete($ticketID, $commentID,$this);
     }
-    function commentDetails($ticketID, $commentID, $params = "") {
-        return $this->comments->info($ticketID, $commentID, $params,$this);
+    function getComment($ticketID, $commentID, $params = "") {
+        return $this->comments->get($ticketID, $commentID, $params,$this);
     }
 
-    function allContacts($params = "") {
+    function getContacts($params = "") {
         return $this->contacts->all($params,$this);
     }
     function createContact($data) {
@@ -384,11 +389,11 @@ class zohodeskAPI {
     function deleteContact($id) {
         return $this->contacts->delete($id,$this);
     }
-    function contactDetails($id, $params = "") {
-        return $this->contacts->info($id, $params,$this);
+    function getContact($id, $params = "") {
+        return $this->contacts->get($id, $params,$this);
     }
 
-    function allAccounts($params = "") {
+    function getAccounts($params = "") {
         return $this->accounts->all($params,$this);
     }
     function createAccount($data) {
@@ -403,11 +408,11 @@ class zohodeskAPI {
     function deleteAccount($id) {
         return $this->accounts->delete($id,$this);
     }
-    function accountDetails($id, $params = "") {
-        return $this->accounts->info($id, $params,$this);
+    function getAccount($id, $params = "") {
+        return $this->accounts->get($id, $params,$this);
     }
 
-    function allTasks($params = "") {
+    function getTasks($params = "") {
         return $this->tasks.all($params,$this);
     }
     function createTask($data) {
@@ -422,40 +427,40 @@ class zohodeskAPI {
     function deleteTask($id) {
         return $this->tasks->delete($id,$this);
     }
-    function taskDetails($id, $params = "") {
-        return $this->tasks->info($id, $params,$this);
+    function getTask($id, $params = "") {
+        return $this->tasks->get($id, $params,$this);
     }
-    function ticketTasks($ticketId,$params=""){
+    function getTicketTasks($ticketId,$params=""){
         return $this->tasks->tasksOfTicket($ticketId, $params,$this);
     }
 
-    function allAgents($params = "") {
+    function getAgents($params = "") {
         return $this->agents->all($params,$this);
     }
-    function agentDetails($id, $params = "") {
-        return $this->agents->info($id, $params,$this);
+    function getAgent($id, $params = "") {
+        return $this->agents->get($id, $params,$this);
     }
 
     function allDepartments($params = "") {
         return $this->departments->all($params,$this);
     }
-    function departmentDetails($id, $params = "") {
-        return $this->departments->info($id, $params,$this);
+    function getDepartment($id, $params = "") {
+        return $this->departments->get($id, $params,$this);
     }
     function buildURL($url, $params = null) {
         return ($params !== null) ? $url . $params : $url;
     }
     function httpGET($url) {
-        $this->httpExecute($url,$this->httpHeaders(),"GET");
+        return $this->httpExecute($url,$this->httpHeaders(),"GET");
     }
     function httpPOST($url, $data) {
-        $this->httpExecute($url,$this->httpHeaders(),"POST",$data);
+        return $this->httpExecute($url,$this->httpHeaders(),"POST",$data);
     }
     function httpPATCH($url, $data) {
-        $this->httpExecute($url,$this->httpHeaders(),"PATCH",$data);
+        return $this->httpExecute($url,$this->httpHeaders(),"PATCH",$data);
     }
     function httpDELETE($url) {
-        $this->httpExecute($url,$this->httpHeaders(),"DELETE");
+        return $this->httpExecute($url,$this->httpHeaders(),"DELETE");
     }
     function httpHeaders() {
         $authtoken = $this->authtoken;
@@ -469,13 +474,14 @@ class zohodeskAPI {
         $curl= curl_init($url);
         curl_setopt($curl,CURLOPT_HTTPHEADER,$headers);
         curl_setopt($curl,CURLOPT_CUSTOMREQUEST,$method);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER,true);
         
         if($method=="POST" || $method=="PATCH"){
             curl_setopt($curl, CURLOPT_POSTFIELDS, (gettype($data)==="string")?$data:json_encode($data));
         }
         $response= curl_exec($curl);
         curl_close($curl);
-        return ($response);
+        return json_decode($response);
     }
     function httpSettings($method, $headers, $data = "") {
 //        $settingsObj = {
